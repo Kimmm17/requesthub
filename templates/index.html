@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="display-4 mb-4">Welcome to RequestHub</h1>
+            <p class="lead mb-4">
+                Your one-stop solution for managing IT equipment requests and maintenance at Columban College.
+            </p>
+            {% if not current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg me-md-2">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg">Register</a>
+            </div>
+            {% else %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-primary btn-lg me-md-2">View Equipment</a>
+                <a href="{{ url_for('equipment.request_equipment') }}" class="btn btn-outline-primary btn-lg">Make Request</a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-6">
+            <img src="{{ url_for('static', filename='img/hero.svg') }}" alt="RequestHub Hero" class="img-fluid">
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-laptop fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">Equipment Borrowing</h3>
+                    <p class="card-text">
+                        Easily request and manage equipment borrowing for your academic needs.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tools fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">IT Support</h3>
+                    <p class="card-text">
+                        Submit IT support requests and track their progress in real-time.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h3 class="card-title">Real-time Status</h3>
+                    <p class="card-text">
+                        Monitor the status of your requests and equipment availability.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">How It Works</h3>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="circle-step mb-3">1</div>
+                                <h5>Register/Login</h5>
+                                <p>Create an account or login to access the system</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="circle-step mb-3">2</div>
+                                <h5>Browse Equipment</h5>
+                                <p>View available equipment and their details</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="circle-step mb-3">3</div>
+                                <h5>Submit Request</h5>
+                                <p>Make a request for equipment or IT support</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="circle-step mb-3">4</div>
+                                <h5>Track Status</h5>
+                                <p>Monitor the progress of your requests</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<style>
+.circle-step {
+    width: 40px;
+    height: 40px;
+    background-color: #4e73df;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0 auto;
+}
+</style>
+{% endblock %} 

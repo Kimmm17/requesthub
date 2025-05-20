@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}New IT Support Request - RequestHub{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2 class="card-title">Submit IT Support Request</h2>
+    <form id="requestForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" class="form-control" required>
+                <option value="">Select a category</option>
+                <option value="hardware">Hardware Issue</option>
+                <option value="software">Software Issue</option>
+                <option value="network">Network Issue</option>
+                <option value="account">Account Issue</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority" class="form-control" required>
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" class="form-control" rows="5" required></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit Request</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleSubmit(event) {
+    event.preventDefault();
+    
+    const formData = {
+        title: document.getElementById('title').value,
+        category: document.getElementById('category').value,
+        priority: document.getElementById('priority').value,
+        description: document.getElementById('description').value
+    };
+    
+    try {
+        const response = await axios.post('/api/requests', formData);
+        showAlert('Request submitted successfully', 'success');
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 2000);
+    } catch (error) {
+        showAlert(error.response?.data?.message || 'Failed to submit request', 'danger');
+    }
+}
+</script>
+{% endblock %} 

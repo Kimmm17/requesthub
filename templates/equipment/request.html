@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Request Equipment - RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Request Equipment</h2>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" class="request-form needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="equipment_id" class="form-label">Equipment</label>
+                            <select class="form-select" id="equipment_id" name="equipment_id" required>
+                                <option value="">Select Equipment</option>
+                                {% for item in equipment %}
+                                    {% if item.status == 'available' and item.available_quantity > 0 %}
+                                        <option value="{{ item.id }}" {% if request.args.get('equipment_id')|int == item.id %}selected{% endif %}>
+                                            {{ item.name }} ({{ item.available_quantity }} available)
+                                        </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">
+                                Please select equipment to request.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity"
+                                   min="1" value="1" required>
+                            <div class="invalid-feedback">
+                                Please enter a valid quantity.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date"
+                                   min="{{ today }}" required>
+                            <div class="invalid-feedback">
+                                Please select a start date.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date"
+                                   min="{{ today }}" required>
+                            <div class="invalid-feedback">
+                                Please select an end date.
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="purpose" class="form-label">Purpose</label>
+                            <textarea class="form-control" id="purpose" name="purpose" rows="3"
+                                      placeholder="Please describe why you need this equipment" required></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a purpose for your request.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                            <a href="{{ url_for('equipment.list_equipment') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    const forms = document.querySelectorAll('.needs-validation')
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+// Date validation
+document.getElementById('start_date').addEventListener('change', function() {
+    document.getElementById('end_date').min = this.value;
+});
+
+// Equipment selection
+document.getElementById('equipment_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const availableQuantity = parseInt(selectedOption.text.match(/\((\d+) available\)/)[1]);
+    const quantityInput = document.getElementById('quantity');
+    quantityInput.max = availableQuantity;
+    quantityInput.value = Math.min(quantityInput.value, availableQuantity);
+});
+</script>
+{% endblock %} 

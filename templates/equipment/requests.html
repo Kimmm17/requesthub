@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Equipment Requests - RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Equipment Requests</h2>
+        <a href="{{ url_for('equipment.request_equipment') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Request
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Equipment</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td>#{{ request.id }}</td>
+                            <td>{{ request.equipment.name }}</td>
+                            <td>{{ request.start_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ request.end_date.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <span class="badge {% if request.status == 'pending' %}bg-warning
+                                                  {% elif request.status == 'approved' %}bg-success
+                                                  {% elif request.status == 'rejected' %}bg-danger
+                                                  {% elif request.status == 'returned' %}bg-info
+                                                  {% else %}bg-secondary{% endif %}">
+                                    {{ request.status }}
+                                </span>
+                            </td>
+                            <td>{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if request.status == 'pending' %}
+                                    <form method="POST" action="{{ url_for('equipment.cancel_request', request_id=request.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this request?')">
+                                            Cancel
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                {% if request.status == 'approved' and current_user.id == request.user_id %}
+                                    <form method="POST" action="{{ url_for('equipment.return_equipment', request_id=request.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Are you sure you want to return this equipment?')">
+                                            Return
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#requestDetails{{ request.id }}">
+                                    Details
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Request Details Modal -->
+                        <div class="modal fade" id="requestDetails{{ request.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Request Details #{{ request.id }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <dl class="row">
+                                            <dt class="col-sm-4">Equipment:</dt>
+                                            <dd class="col-sm-8">{{ request.equipment.name }}</dd>
+
+                                            <dt class="col-sm-4">Purpose:</dt>
+                                            <dd class="col-sm-8">{{ request.purpose }}</dd>
+
+                                            <dt class="col-sm-4">Start Date:</dt>
+                                            <dd class="col-sm-8">{{ request.start_date.strftime('%Y-%m-%d') }}</dd>
+
+                                            <dt class="col-sm-4">End Date:</dt>
+                                            <dd class="col-sm-8">{{ request.end_date.strftime('%Y-%m-%d') }}</dd>
+
+                                            <dt class="col-sm-4">Status:</dt>
+                                            <dd class="col-sm-8">
+                                                <span class="badge {% if request.status == 'pending' %}bg-warning
+                                                                  {% elif request.status == 'approved' %}bg-success
+                                                                  {% elif request.status == 'rejected' %}bg-danger
+                                                                  {% elif request.status == 'returned' %}bg-info
+                                                                  {% else %}bg-secondary{% endif %}">
+                                                    {{ request.status }}
+                                                </span>
+                                            </dd>
+
+                                            <dt class="col-sm-4">Created:</dt>
+                                            <dd class="col-sm-8">{{ request.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+                                            {% if request.updated_at != request.created_at %}
+                                            <dt class="col-sm-4">Last Updated:</dt>
+                                            <dd class="col-sm-8">{{ request.updated_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                                            {% endif %}
+                                        </dl>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No equipment requests found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<style>
+.badge {
+    font-size: 0.875rem;
+}
+.modal-dialog {
+    max-width: 600px;
+}
+</style>
+{% endblock %} 

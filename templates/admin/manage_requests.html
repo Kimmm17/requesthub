@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Requests - RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>Manage Equipment Requests</h2>
+        </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary active" onclick="filterRequests('all')">All</button>
+                <button type="button" class="btn btn-outline-warning" onclick="filterRequests('pending')">Pending</button>
+                <button type="button" class="btn btn-outline-success" onclick="filterRequests('approved')">Approved</button>
+                <button type="button" class="btn btn-outline-danger" onclick="filterRequests('rejected')">Rejected</button>
+                <button type="button" class="btn btn-outline-secondary" onclick="filterRequests('returned')">Returned</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests List -->
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>User</th>
+                            <th>Equipment</th>
+                            <th>Quantity</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr data-status="{{ req.status }}">
+                            <td>#{{ req.id }}</td>
+                            <td>{{ req.user.username }}</td>
+                            <td>{{ req.equipment.name }}</td>
+                            <td>{{ req.quantity }}</td>
+                            <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <span class="badge {% if req.status == 'approved' %}bg-success
+                                                  {% elif req.status == 'pending' %}bg-warning
+                                                  {% elif req.status == 'rejected' %}bg-danger
+                                                  {% else %}bg-secondary{% endif %}">
+                                    {{ req.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewRequestDetails({{ req.id }})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if req.status == 'pending' %}
+                                    <button type="button" class="btn btn-sm btn-outline-success" onclick="updateRequestStatus({{ req.id }}, 'approved')">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="updateRequestStatus({{ req.id }}, 'rejected')">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {% elif req.status == 'approved' %}
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="updateRequestStatus({{ req.id }}, 'returned')">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Request Details Modal -->
+<div class="modal fade" id="requestDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Request Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="request-info">
+                    <h6>Equipment Information</h6>
+                    <p><strong>Name:</strong> <span id="equipmentName"></span></p>
+                    <p><strong>Category:</strong> <span id="equipmentCategory"></span></p>
+                    <p><strong>Quantity Requested:</strong> <span id="requestQuantity"></span></p>
+                    <p><strong>Available Quantity:</strong> <span id="availableQuantity"></span></p>
+
+                    <h6 class="mt-4">Request Information</h6>
+                    <p><strong>Purpose:</strong> <span id="requestPurpose"></span></p>
+                    <p><strong>Start Date:</strong> <span id="startDate"></span></p>
+                    <p><strong>End Date:</strong> <span id="endDate"></span></p>
+
+                    <h6 class="mt-4">User Information</h6>
+                    <p><strong>Username:</strong> <span id="username"></span></p>
+                    <p><strong>Email:</strong> <span id="userEmail"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<style>
+.btn-group .btn {
+    margin-right: 2px;
+}
+.badge {
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterRequests(status) {
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Update active button
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+function updateRequestStatus(requestId, newStatus) {
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/admin/request/${requestId}/update`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            // Show error message in a more user-friendly way
+            const errorMessage = data.message || 'An unknown error occurred';
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                ${errorMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+        }
+    })
+    .catch(error => {
+        // Show error message in a more user-friendly way
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            Error updating request: ${error.message || 'An unknown error occurred'}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+    });
+}
+
+function viewRequestDetails(requestId) {
+    // Get CSRF token from meta tag
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/admin/request/${requestId}/details`, {
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update modal with request details
+        document.getElementById('equipmentName').textContent = data.equipment.name;
+        document.getElementById('equipmentCategory').textContent = data.equipment.category;
+        document.getElementById('requestQuantity').textContent = data.quantity;
+        document.getElementById('availableQuantity').textContent = data.equipment.available_quantity;
+        document.getElementById('requestPurpose').textContent = data.purpose;
+        document.getElementById('startDate').textContent = data.start_date;
+        document.getElementById('endDate').textContent = data.end_date;
+        document.getElementById('username').textContent = data.user.username;
+        document.getElementById('userEmail').textContent = data.user.email;
+        
+        // Show the modal
+        new bootstrap.Modal(document.getElementById('requestDetailsModal')).show();
+    })
+    .catch(error => {
+        // Show error message in a more user-friendly way
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            Error loading request details: ${error.message || 'An unknown error occurred'}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+    });
+}
+</script>
+{% endblock %} 

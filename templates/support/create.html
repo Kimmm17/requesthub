@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Support Ticket{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="mb-4">Submit Support Ticket</h1>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('support.create_ticket') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                            <div class="form-text">Please provide as much detail as possible about your issue.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select a category</option>
+                                <option value="hardware">Hardware Issue</option>
+                                <option value="software">Software Issue</option>
+                                <option value="network">Network Issue</option>
+                                <option value="account">Account Access</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low">Low - Not time sensitive</option>
+                                <option value="medium">Medium - Affects work but has workaround</option>
+                                <option value="high">High - Severely impacts work</option>
+                                <option value="urgent">Urgent - Complete work stoppage</option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Ticket</button>
+                            <a href="{{ url_for('support.support_home') }}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

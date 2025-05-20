@@ -1,0 +1,138 @@
+/* General styles */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Card styles */
+.card {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+/* Form styles */
+.form-label {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+/* Button styles */
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+/* Alert styles */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+.alert-success {
+    background-color: #1cc88a;
+    color: white;
+}
+
+.alert-error {
+    background-color: #e74a3b;
+    color: white;
+}
+
+.alert-info {
+    background-color: #36b9cc;
+    color: white;
+}
+
+/* Navbar styles */
+.navbar {
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.navbar-dark.bg-primary {
+    background-color: #4e73df !important;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+/* Dropdown styles */
+.dropdown-menu {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item:hover {
+    background-color: #4e73df;
+    color: white;
+}
+
+/* Container spacing */
+.container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+/* Auth pages specific styles */
+.auth-page {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Equipment list styles */
+.equipment-card {
+    transition: transform 0.2s;
+}
+
+.equipment-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Request form styles */
+.request-form {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Dashboard stats */
+.stats-card {
+    border-left: 4px solid;
+}
+
+.stats-card.primary {
+    border-left-color: #4e73df;
+}
+
+.stats-card.success {
+    border-left-color: #1cc88a;
+}
+
+.stats-card.info {
+    border-left-color: #36b9cc;
+}
+
+.stats-card.warning {
+    border-left-color: #f6c23e;
+} 

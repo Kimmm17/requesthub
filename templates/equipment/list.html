@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Equipment - RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Available Equipment</h2>
+        {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin.manage_equipment') }}" class="btn btn-primary">
+            <i class="fas fa-cog"></i> Manage Equipment
+        </a>
+        {% else %}
+        <a href="{{ url_for('equipment.request_equipment') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Request Equipment
+        </a>
+        {% endif %}
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for item in equipment %}
+        <div class="col">
+            <div class="card h-100 equipment-card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.name }}</h5>
+                    <p class="card-text">{{ item.description }}</p>
+                    <div class="mb-2">
+                        <span class="badge bg-primary">{{ item.category }}</span>
+                        <span class="badge {% if item.status == 'available' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ 'Available' if item.status == 'available' else 'Out of Stock' }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">Available: {{ item.available_quantity }}/{{ item.quantity }}</small>
+                        </div>
+                        {% if current_user.role != 'admin' %}
+                            {% if item.available_quantity > 0 %}
+                                <a href="{{ url_for('equipment.request_equipment', equipment_id=item.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    Request
+                                </a>
+                            {% else %}
+                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                    Out of Stock
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                No equipment available at the moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+{% endblock %} 

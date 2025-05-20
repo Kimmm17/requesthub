@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Support Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Support Dashboard</h1>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Open Tickets</h5>
+                    <h2 class="mb-0">{{ open_tickets }}</h2>
+                    <small>Awaiting Response</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5 class="card-title">In Progress</h5>
+                    <h2 class="mb-0">{{ in_progress }}</h2>
+                    <small>Being Handled</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Resolved Today</h5>
+                    <h2 class="mb-0">{{ resolved_today }}</h2>
+                    <small>Completed Today</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">My Active Tickets</h5>
+                    <h2 class="mb-0">{{ my_tickets|length }}</h2>
+                    <small>Assigned to Me</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Urgent Tickets Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Urgent Tickets</h5>
+        </div>
+        <div class="card-body">
+            {% if urgent_tickets %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Subject</th>
+                            <th>Submitted By</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in urgent_tickets %}
+                        <tr>
+                            <td>#{{ ticket.id }}</td>
+                            <td>
+                                <a href="{{ url_for('support.view_ticket', ticket_id=ticket.id) }}">
+                                    {{ ticket.subject }}
+                                </a>
+                            </td>
+                            <td>{{ ticket.creator.username }}</td>
+                            <td>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('support.view_ticket', ticket_id=ticket.id) }}" 
+                                       class="btn btn-sm btn-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if ticket.status == 'open' %}
+                                    <button onclick="acceptTicket({{ ticket.id }})" 
+                                            class="btn btn-sm btn-success" title="Accept">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No urgent tickets at the moment.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- My Assigned Tickets -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">My Assigned Tickets</h5>
+        </div>
+        <div class="card-body">
+            {% if my_tickets %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Subject</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in my_tickets %}
+                        <tr>
+                            <td>#{{ ticket.id }}</td>
+                            <td>
+                                <a href="{{ url_for('support.view_ticket', ticket_id=ticket.id) }}">
+                                    {{ ticket.subject }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ ticket.priority|priority_color }}">
+                                    {{ ticket.priority|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ ticket.status|status_color }}">
+                                    {{ ticket.status|format_status }}
+                                </span>
+                            </td>
+                            <td>{{ ticket.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('support.view_ticket', ticket_id=ticket.id) }}" 
+                                       class="btn btn-sm btn-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if ticket.status == 'in_progress' %}
+                                    <button onclick="completeTicket({{ ticket.id }})"
+                                            class="btn btn-sm btn-primary" title="Mark Complete">
+                                        <i class="fas fa-check-double"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No tickets are currently assigned to you.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+function acceptTicket(ticketId) {
+    if (confirm('Are you sure you want to accept this ticket?')) {
+        fetch(`/support/ticket/${ticketId}/accept`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+
+function completeTicket(ticketId) {
+    if (confirm('Are you sure you want to mark this ticket as complete?')) {
+        fetch(`/support/ticket/${ticketId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        });
+    }
+}
+</script>
+{% endblock scripts %}
+
+{% block styles %}
+<style>
+.card {
+    transition: transform 0.2s;
+    margin-bottom: 1rem;
+}
+.card:hover {
+    transform: translateY(-2px);
+}
+.table th {
+    border-top: none;
+}
+</style>
+{% endblock styles %}
+{% endblock content %} 

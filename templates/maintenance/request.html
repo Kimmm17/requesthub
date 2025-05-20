@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Submit IT Support Request - RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">Submit IT Support Request</h4>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" class="needs-validation" novalidate>
+                        {{ csrf_token() }}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Issue Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                            <div class="invalid-feedback">Please provide a title for your request.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category" class="form-label">Issue Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="hardware">Hardware Issue</option>
+                                <option value="software">Software Issue</option>
+                                <option value="network">Network Issue</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="invalid-feedback">Please select an issue category.</div>
+                        </div>
+
+                        <!-- Dynamic fields based on category -->
+                        <div id="hardware-fields" class="d-none">
+                            <div class="mb-3">
+                                <label for="equipment_type" class="form-label">Equipment Type</label>
+                                <select class="form-select" id="equipment_type" name="equipment_type">
+                                    <option value="">Select Equipment</option>
+                                    <option value="computer">Computer/Laptop</option>
+                                    <option value="printer">Printer</option>
+                                    <option value="network_device">Network Device</option>
+                                    <option value="peripheral">Peripheral Device</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="asset_tag" class="form-label">Asset Tag/Serial Number</label>
+                                <input type="text" class="form-control" id="asset_tag" name="asset_tag">
+                                <div class="form-text">If available, please provide the asset tag or serial number.</div>
+                            </div>
+                        </div>
+
+                        <div id="software-fields" class="d-none">
+                            <div class="mb-3">
+                                <label for="software_name" class="form-label">Software Name</label>
+                                <input type="text" class="form-control" id="software_name" name="software_name">
+                                <div class="form-text">Name of the software having issues.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="error_message" class="form-label">Error Message</label>
+                                <textarea class="form-control" id="error_message" name="error_message" rows="2"></textarea>
+                                <div class="form-text">Copy and paste any error messages you see.</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" required>
+                            <div class="invalid-feedback">Please specify the location (e.g., Room number, Department).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="low">Low - Minor issue, no work disruption</option>
+                                <option value="medium" selected>Medium - Affects work but has workaround</option>
+                                <option value="high">High - Severely impacts work</option>
+                                <option value="urgent">Urgent - Complete work stoppage</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a priority level.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Issue Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                            <div class="invalid-feedback">Please provide a detailed description of the issue.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="troubleshooting_done" class="form-label">Troubleshooting Steps Taken</label>
+                            <textarea class="form-control" id="troubleshooting_done" name="troubleshooting_done" rows="3"></textarea>
+                            <div class="form-text">Describe any steps you've already taken to resolve the issue.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                            <a href="{{ url_for('maintenance.list_requests') }}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation')
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+
+    // Dynamic form fields
+    const categorySelect = document.getElementById('category')
+    const hardwareFields = document.getElementById('hardware-fields')
+    const softwareFields = document.getElementById('software-fields')
+
+    categorySelect.addEventListener('change', function() {
+        // Hide all category-specific fields
+        hardwareFields.classList.add('d-none')
+        softwareFields.classList.add('d-none')
+
+        // Show fields based on selected category
+        switch(this.value) {
+            case 'hardware':
+                hardwareFields.classList.remove('d-none')
+                break
+            case 'software':
+                softwareFields.classList.remove('d-none')
+                break
+        }
+    })
+})
+</script>
+{% endblock %} 

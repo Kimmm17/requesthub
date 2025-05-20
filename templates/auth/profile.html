@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - RequestHub{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-center mb-4">Profile</h2>
+                    
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=4e73df&color=fff&size=128"
+                                     class="rounded-circle mb-3" alt="Profile Picture">
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h4>{{ current_user.username }}</h4>
+                            <p class="text-muted">{{ current_user.email }}</p>
+                            <p><strong>Role:</strong> {{ current_user.role.title() }}</p>
+                            <p><strong>Member since:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</p>
+                        </div>
+                    </div>
+
+                    <form id="profileForm" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   value="{{ current_user.username }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ current_user.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Leave blank to keep current password">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            username: document.getElementById('username').value,
+            email: document.getElementById('email').value
+        };
+        
+        const password = document.getElementById('password').value;
+        if (password) {
+            formData.password = password;
+        }
+        
+        fetch('{{ url_for("auth.profile") }}', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${data.success ? 'success' : 'danger'} alert-dismissible fade show`;
+                alert.innerHTML = `
+                    ${data.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                document.querySelector('.card-body').insertBefore(alert, document.querySelector('form'));
+                
+                if (data.success) {
+                    // Reload page after 2 seconds on success
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            }
+        })
+        .catch(error => {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show';
+            alert.innerHTML = `
+                An error occurred. Please try again.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            document.querySelector('.card-body').insertBefore(alert, document.querySelector('form'));
+        });
+    });
+});
+</script>
+{% endblock %} 
